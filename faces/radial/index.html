@@ -653,8 +653,32 @@ function frame(dt){
   }
 
   drawUsage();
+  drawStatus();
 
   if(AV.alert)drawAlert(cxp,cyp,innerR,dt60);
+}
+
+/* Live STATE/MIC readout, top-right. Real bus values only (AV.state,
+   AV.alert) — no decorative rows. Right-aligned so the panel's right edge
+   stays fixed as the state text's length changes (IDLE vs LISTENING). */
+function drawStatus(){
+  const fs=Math.max(9,Math.round(Math.min(W,H)*.014));
+  ctx.save();
+  ctx.font=`${fs}px 'SF Mono',Menlo,Consolas,monospace`;
+  ctx.textAlign="right";ctx.textBaseline="alphabetic";
+  const st=AV.state||"idle";
+  const micOn=st==="listening";
+  const rows=[["STATE",st.toUpperCase(),true],["MIC",micOn?"ON":"OFF",micOn]];
+  let y=16+fs;
+  for(const[label,value,active]of rows){
+    ctx.fillStyle=AV.alert?"rgb(255,110,90)":(active?"rgb(110,220,150)":"rgb(78,120,96)");
+    const vw=ctx.measureText(value).width;
+    ctx.fillText(value,W-18,y);
+    ctx.fillStyle="rgb(78,120,96)";
+    ctx.fillText(label,W-18-vw-8,y);
+    y+=fs+6;
+  }
+  ctx.restore();
 }
 
 /* Plan usage, bottom-left. Drawn from AV.util.usageRows so this face cannot
